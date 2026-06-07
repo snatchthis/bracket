@@ -111,6 +111,21 @@ Read the [deployment docs](https://docs.bracketapp.nl/docs/deployment) for how t
 
 Bracket can be run in Docker or by itself (using `uv` and `pnpm`).
 
+## Self-hosting on a home-lab
+This fork ships a production-ready Docker setup for a home-lab behind a Traefik
+reverse proxy with HTTPS, using the prebuilt combined image from ghcr:
+
+- [`docker-compose.prod.yml`](docker-compose.prod.yml) — production stack (app + Postgres, Traefik labels)
+- [`.env.example`](.env.example) — required secrets/config
+- [`DEPLOYMENT.md`](DEPLOYMENT.md) — full step-by-step runbook (publish image, configure, deploy, verify, backup, upgrade)
+
+Quick version:
+```bash
+cp .env.example .env          # then fill in secrets + domain
+docker compose -f docker-compose.prod.yml up -d
+```
+See [`DEPLOYMENT.md`](DEPLOYMENT.md) for the complete guide.
+
 # Development setup
 Read the [development docs](https://docs.bracketapp.nl/docs/community/development) for how to run Bracket for development.
 
