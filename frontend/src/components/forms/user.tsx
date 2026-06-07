@@ -43,6 +43,7 @@ export default function UserForm({ user, t, i18n }: { user: UserPublic; t: any; 
     { value: 'it', label: '🇮🇹 Italian' },
     { value: 'ja', label: '🇯🇵 Japanese' },
     { value: 'nl', label: '🇳🇱 Dutch' },
+    { value: 'pl', label: '🇵🇱 Polish' },
     { value: 'pt', label: '🇵🇹 Portuguese' },
     { value: 'sv', label: '🇸🇪 Swedish' },
     { value: 'zh', label: '🇨🇳 Chinese' },
