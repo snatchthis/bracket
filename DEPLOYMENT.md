@@ -39,11 +39,11 @@ The image must be built **after** the Dockerfile change that sets
 
 ```bash
 # From a clone of this repo (not necessarily the home-lab):
-git tag v0.1.0
-git push --tags          # triggers .github/workflows/docker-publish.yml
+git tag v0.1.1
+git push origin v0.1.1   # triggers .github/workflows/docker-publish.yml
 ```
 
-This publishes `ghcr.io/snatchthis/bracket:v0.1.0` (and `:latest`).
+This publishes `ghcr.io/snatchthis/bracket:v0.1.1` (and `:latest`).
 Alternatively run the "docker publish" workflow manually via `workflow_dispatch`.
 
 **Make the package pullable from the home-lab:**
@@ -71,7 +71,7 @@ Required values:
 | Variable | Notes |
 |----------|-------|
 | `BRACKET_DOMAIN` | Public host, e.g. `bracket.example.com`. Must match the Traefik router rule. |
-| `BRACKET_TAG` | Image tag to pull, e.g. `v0.1.0` (prefer a pinned tag over `latest`). |
+| `BRACKET_TAG` | Image tag to pull, e.g. `v0.1.1` (prefer a pinned tag over `latest`). |
 | `JWT_SECRET` | 32-byte hex. **Required in PRODUCTION** — no default. |
 | `POSTGRES_PASSWORD` | Strong password. |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Initial admin account, created on first start. |
