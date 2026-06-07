@@ -5,11 +5,16 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Baked into the static frontend at build time. Default is a relative path so the
+# app works behind any host/reverse-proxy (frontend + API share one origin via
+# SERVE_FRONTEND). Override with an absolute URL only for split deployments.
+ARG VITE_API_BASE_URL=/api
+
 COPY frontend .
 
 RUN apk add pnpm && \
     CI=true pnpm install && \
-    VITE_API_BASE_URL=http://localhost:8400/api pnpm build
+    VITE_API_BASE_URL=${VITE_API_BASE_URL} pnpm build
 
 # Build backend image that also serves frontend (stored in `/app/frontend-dist`)
 FROM python:3.14-alpine3.22
