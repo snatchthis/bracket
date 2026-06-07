@@ -1,0 +1,78 @@
+# Production deployment for a home-lab behind Traefik (HTTPS).
+#
+# Prerequisites:
+#   1. A Traefik instance already running and attached to the external network
+#      named below (default: "proxy"). Adjust the name if yours differs.
+#   2. A published combined image of this fork in ghcr:
+#        - tag a release (git tag vX.Y.Z && git push --tags) to trigger
+#          .github/workflows/docker-publish.yml, OR run that workflow manually.
+#      The image MUST be built after the Dockerfile change that sets
+#      VITE_API_BASE_URL=/api, otherwise the frontend will call localhost.
+#   3. A filled-in .env file next to this file (see .env.example).
+#
+# Run with:  docker compose -f docker-compose.prod.yml up -d
+
+networks:
+  bracket_lan:
+    driver: bridge
+  proxy:
+    external: true
+
+volumes:
+  bracket_pg_data:
+  bracket_static_data:
+
+services:
+  bracket:
+    container_name: bracket
+    image: ghcr.io/snatchthis/bracket:${BRACKET_TAG:-latest}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: PRODUCTION
+      SERVE_FRONTEND: "true"
+      API_PREFIX: /api
+      # Public URL of the app (used for generated dashboard links).
+      BASE_URL: https://${BRACKET_DOMAIN}
+      # Same-origin behind the proxy; lock CORS to your domain.
+      CORS_ORIGINS: https://${BRACKET_DOMAIN}
+      PG_DSN: postgresql://bracket:${POSTGRES_PASSWORD}@postgres:5432/bracket
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      ALLOW_USER_REGISTRATION: ${ALLOW_USER_REGISTRATION:-false}
+      ALLOW_DEMO_USER_REGISTRATION: "false"
+      # Optional: error tracking
+      # SENTRY_DSN: ${SENTRY_DSN}
+    volumes:
+      - bracket_static_data:/app/static
+    networks:
+      - bracket_lan
+      - proxy
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: proxy
+      traefik.http.routers.bracket.rule: Host(`${BRACKET_DOMAIN}`)
+      traefik.http.routers.bracket.entrypoints: websecure
+      traefik.http.routers.bracket.tls: "true"
+      traefik.http.routers.bracket.tls.certresolver: ${TRAEFIK_CERTRESOLVER:-letsencrypt}
+      traefik.http.services.bracket.loadbalancer.server.port: "8400"
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bracket
+      POSTGRES_USER: bracket
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - bracket_pg_data:/var/lib/postgresql/data
+    networks:
+      - bracket_lan
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bracket -d bracket"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
